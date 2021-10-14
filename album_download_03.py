@@ -19,19 +19,21 @@ logging.basicConfig(
 def album_download(api=None, album_list=[], exclude_list=[]):
     try:
         logging.info('album_list: {}'.format(album_list))
+        logging.info('exclude_list: {}'.format(exclude_list))
 
         for album in album_list:
             if album not in exclude_list:
                 if not os.path.exists(album):
                     os.mkdir(album)
+                if not os.path.exists('{}/duplicates'.format(album)):
+                    os.mkdir('{}/duplicates'.format(album))
 
                 img_list = []
                 img_list_duplicates = []
                 img_list_duplicates_extra = []
 
-                logging.info('Starting download of album: {}'.format(album))
-                photos = api.photos.album[album]
-                logging.info('Total number of object in album: {}'.format(len(photos)))
+                photos = api.photos.albums[album]
+                logging.info('Starting, total number of object in {}: {}'.format(album, len(photos)))
 
                 for p in photos:
                     if (p.filename, p.size) not in img_list:
@@ -44,13 +46,15 @@ def album_download(api=None, album_list=[], exclude_list=[]):
                     elif (p.filename, p.size) not in img_list_duplicates:
                         download = p.download()
                         with open('{}/duplicates/{}'.format(album, p.filename), 'wb') as opened_file:
-                            opened_file.write(download.raw.read())
+                            b = opened_file.write(download.raw.read())
+                            logging.info('{}: {}'.format(p.filename, b))
 
                         img_list_duplicates.append((p.filename, p.size))
 
                     else:
                        img_list_duplicates_extra.append((p.filename, p.size))
 
+                logging.info('Finished, total number of object in {}: {}'.format(album, len(photos)))
                 logging.info('Total number of unique object in album: {}'.format(len(img_list)))
                 logging.info('Total number of duplicates object in album: {}'.format(
                     len(img_list_duplicates)))

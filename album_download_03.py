@@ -55,10 +55,10 @@ def album_download(api=None, album_list=[], exclude_list=[]):
                        img_list_duplicates_extra.append((p.filename, p.size))
 
                 logging.info('Finished, total number of object in {}: {}'.format(album, len(photos)))
-                logging.info('Total number of unique object in album: {}'.format(len(img_list)))
-                logging.info('Total number of duplicates object in album: {}'.format(
+                logging.info('Total number of unique object downloaded: {}'.format(len(img_list)))
+                logging.info('Total number of duplicate objects downloaded: {}'.format(
                     len(img_list_duplicates)))
-                logging.info('Total number of duplicate extras object in album: {}'.format(
+                logging.info('Total number of duplicate extra objects, not downloaded: {}'.format(
                     len(img_list_duplicates_extra)))
 
     except Exception as e:

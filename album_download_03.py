@@ -16,17 +16,17 @@ logging.basicConfig(
     ]
 )
 
-def album_download(api=None, album_list=[], exclude_list=[]):
+def album_download(api=None, album_list=[], exclude_list=[], parent_directory='./'):
     try:
         logging.info('album_list: {}'.format(album_list))
         logging.info('exclude_list: {}'.format(exclude_list))
 
         for album in album_list:
             if album not in exclude_list:
-                if not os.path.exists(album):
-                    os.mkdir(album)
-                if not os.path.exists('{}/duplicates'.format(album)):
-                    os.mkdir('{}/duplicates'.format(album))
+                album_dir = os.path.join(parent_directory, album)
+                album_dir_duplicates = os.path.join(album_dir, 'duplicates')
+                if not os.path.exists(album_dir):
+                    os.makedirs(album_dir_duplicates)
 
                 img_list = []
                 img_list_duplicates = []
@@ -38,16 +38,17 @@ def album_download(api=None, album_list=[], exclude_list=[]):
                 for p in photos:
                     if (p.filename, p.size) not in img_list:
                         download = p.download()
-                        with open('{}/{}'.format(album, p.filename), 'wb') as opened_file:
-                            opened_file.write(download.raw.read())
+                        with open('{}/{}'.format(album_dir, p.filename), 'wb') as opened_file:
+                            b = opened_file.write(download.raw.read())
+                            logging.info('Original {}: {}'.format(p.filename, b))
 
                         img_list.append((p.filename, p.size))
 
                     elif (p.filename, p.size) not in img_list_duplicates:
                         download = p.download()
-                        with open('{}/duplicates/{}'.format(album, p.filename), 'wb') as opened_file:
+                        with open('{}/{}'.format(album_dir_duplicates, p.filename), 'wb') as opened_file:
                             b = opened_file.write(download.raw.read())
-                            logging.info('{}: {}'.format(p.filename, b))
+                            logging.info('Duplicate {}: {}'.format(p.filename, b))
 
                         img_list_duplicates.append((p.filename, p.size))
 

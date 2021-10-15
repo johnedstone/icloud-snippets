@@ -10,5 +10,6 @@
 >>> api = pyicloud.PyiCloudService('email', 'password', cookie_directory='path to session informaion')
 >>> api.requires_2fa
 False
->>> album_download_03.album_download(api, album_list=['All Photos', 'Third Fourth', 'Favorites'], exclude_list=['Favorites'])
+>>> all_albums = [i for i in api.photos.albums]
+>>> album_download_03.album_download(api, album_list=all_albums, exclude_list=['Favorites'])
 

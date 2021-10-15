@@ -44,7 +44,7 @@ def album_download(api=None, album_list=[], exclude_list=[], parent_directory='.
                         download = p.download()
                         with open('{}/{}'.format(album_dir, p.filename), 'wb') as opened_file:
                             b = opened_file.write(download.raw.read())
-                            logging.info('Original {}: {}'.format(p.filename, b))
+                            logging.info('Original (bytes written) {}: {}'.format(p.filename, b))
 
                         if p.filename.lower().endswith('.heic'):
                             heic_name = shlex.quote(os.path.join(album_dir, p.filename))
@@ -52,7 +52,7 @@ def album_download(api=None, album_list=[], exclude_list=[], parent_directory='.
                             cmd = '/usr/bin/heif-convert {} {}'.format(
                                     heic_name, jpg_name)
                             output = subprocess.run(shlex.split(cmd))
-                            logging.info('Changed {} to {}: {}'.format(p.filename, jpg_name, output))
+                            logging.info('Created {} from {}: {}'.format(jpg_name, p.filename, output))
 
                             # fix orientation
                             cmd = '/usr/bin/jhead -autorot {}'.format(jpg_name)
@@ -70,7 +70,7 @@ def album_download(api=None, album_list=[], exclude_list=[], parent_directory='.
                         download = p.download()
                         with open('{}/{}'.format(album_dir_duplicates, p.filename), 'wb') as opened_file:
                             b = opened_file.write(download.raw.read())
-                            logging.info('Duplicate {}: {}'.format(p.filename, b))
+                            logging.info('Duplicate (bytes written) {}: {}'.format(p.filename, b))
 
                         img_list_duplicates.append((p.filename, p.size))
 

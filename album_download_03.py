@@ -1,8 +1,10 @@
 import logging
 import os
-import sys
+import shlex
+import shutil
+import subprocess
+
 from datetime import datetime
-from pprint import pprint
 
 if not os.path.exists('logs'):
     os.mkdir('logs')
@@ -25,8 +27,10 @@ def album_download(api=None, album_list=[], exclude_list=[], parent_directory='.
             if album not in exclude_list:
                 album_dir = os.path.join(parent_directory, album)
                 album_dir_duplicates = os.path.join(album_dir, 'duplicates')
+                album_dir_heic = os.path.join(album_dir, 'heic_photos')
                 if not os.path.exists(album_dir):
                     os.makedirs(album_dir_duplicates)
+                    os.makedirs(album_dir_heic)
 
                 img_list = []
                 img_list_duplicates = []
@@ -41,6 +45,24 @@ def album_download(api=None, album_list=[], exclude_list=[], parent_directory='.
                         with open('{}/{}'.format(album_dir, p.filename), 'wb') as opened_file:
                             b = opened_file.write(download.raw.read())
                             logging.info('Original {}: {}'.format(p.filename, b))
+
+                        if p.filename.lower().endswith('.heic'):
+                            heic_name = shlex.quote(os.path.join(album_dir, p.filename))
+                            jpg_name = shlex.quote(os.path.join(album_dir, p.filename.lower().replace('.heic', '_from_heic.jpg')))
+                            cmd = '/usr/bin/heif-convert {} {}'.format(
+                                    heic_name, jpg_name)
+                            output = subprocess.run(shlex.split(cmd))
+                            logging.info('Changed {} to {}: {}'.format(p.filename, jpg_name, output))
+
+                            # fix orientation
+                            cmd = '/usr/bin/jhead -autorot {}'.format(jpg_name)
+                            output = subprocess.run(shlex.split(cmd))
+                            logging.info('Autorotated {} to {}: {}'.format(p.filename, jpg_name, output))
+
+                            # move to dir, out of the way
+                            cmd = '/bin/mv {} {}'.format(heic_name, os.path.join(shlex.quote(album_dir_heic), shlex.quote(p.filename)))
+                            output = subprocess.run(shlex.split(cmd))
+                            logging.info('Moving {} to heic_photos directory: {}'.format(p.filename, output))
 
                         img_list.append((p.filename, p.size))
 

@@ -40,42 +40,51 @@ def album_download(api=None, album_list=[], exclude_list=[], parent_directory='.
                 logging.info('Starting, total number of object in {}: {}'.format(album, len(photos)))
 
                 for p in photos:
-                    if (p.filename, p.size) not in img_list:
-                        download = p.download()
-                        with open('{}/{}'.format(album_dir, p.filename), 'wb') as opened_file:
-                            b = opened_file.write(download.raw.read())
-                            logging.info('Original (bytes written) {}: {}'.format(p.filename, b))
+                    try:
 
-                        if p.filename.lower().endswith('.heic'):
-                            heic_name = shlex.quote(os.path.join(album_dir, p.filename))
-                            jpg_name = shlex.quote(os.path.join(album_dir, p.filename.lower().replace('.heic', '_from_heic.jpg')))
-                            cmd = '/usr/bin/heif-convert {} {}'.format(
-                                    heic_name, jpg_name)
-                            output = subprocess.run(shlex.split(cmd))
-                            logging.info('Created {} from {}: {}'.format(jpg_name, p.filename, output))
+                        if (p.filename, p.size) not in img_list:
+                            download = p.download()
+                            with open('{}/{}'.format(album_dir, p.filename), 'wb') as opened_file:
+                                b = opened_file.write(download.raw.read())
+                                logging.info('Original (bytes written) {}: {}'.format(p.filename, b))
+    
+                            if p.filename.lower().endswith('.heic'):
+                                heic_name = shlex.quote(os.path.join(album_dir, p.filename))
+                                jpg_name = shlex.quote(os.path.join(album_dir, p.filename.lower().replace('.heic', '_from_heic.jpg')))
+                                cmd = '/usr/bin/heif-convert {} {}'.format(
+                                        heic_name, jpg_name)
+                                output = subprocess.run(shlex.split(cmd))
+                                logging.info('Created {} from {}: {}'.format(jpg_name, p.filename, output))
+    
+                                # fix orientation
+                                cmd = '/usr/bin/jhead -autorot {}'.format(jpg_name)
+                                output = subprocess.run(shlex.split(cmd))
+                                logging.info('Autorotated {} to {}: {}'.format(p.filename, jpg_name, output))
+    
+                                # move to dir, out of the way
+                                cmd = '/bin/mv {} {}'.format(heic_name, os.path.join(shlex.quote(album_dir_heic), shlex.quote(p.filename)))
+                                output = subprocess.run(shlex.split(cmd))
+                                logging.info('Moving {} to heic_photos directory: {}'.format(p.filename, output))
+    
+                            img_list.append((p.filename, p.size))
+    
+                        elif (p.filename, p.size) not in img_list_duplicates:
+                            download = p.download()
+                            with open('{}/{}'.format(album_dir_duplicates, p.filename), 'wb') as opened_file:
+                                b = opened_file.write(download.raw.read())
+                                logging.info('Duplicate (bytes written) {}: {}'.format(p.filename, b))
+    
+                            img_list_duplicates.append((p.filename, p.size))
+    
+                        else:
+                           img_list_duplicates_extra.append((p.filename, p.size))
 
-                            # fix orientation
-                            cmd = '/usr/bin/jhead -autorot {}'.format(jpg_name)
-                            output = subprocess.run(shlex.split(cmd))
-                            logging.info('Autorotated {} to {}: {}'.format(p.filename, jpg_name, output))
+                    except Exception as e:
+                        logging.error('Inner error: {}'.format(e))
 
-                            # move to dir, out of the way
-                            cmd = '/bin/mv {} {}'.format(heic_name, os.path.join(shlex.quote(album_dir_heic), shlex.quote(p.filename)))
-                            output = subprocess.run(shlex.split(cmd))
-                            logging.info('Moving {} to heic_photos directory: {}'.format(p.filename, output))
+                    finally:
+                        logging.info('Continuing to next photo')
 
-                        img_list.append((p.filename, p.size))
-
-                    elif (p.filename, p.size) not in img_list_duplicates:
-                        download = p.download()
-                        with open('{}/{}'.format(album_dir_duplicates, p.filename), 'wb') as opened_file:
-                            b = opened_file.write(download.raw.read())
-                            logging.info('Duplicate (bytes written) {}: {}'.format(p.filename, b))
-
-                        img_list_duplicates.append((p.filename, p.size))
-
-                    else:
-                       img_list_duplicates_extra.append((p.filename, p.size))
 
                 logging.info('Finished, total number of object in {}: {}'.format(album, len(photos)))
                 logging.info('Total number of unique object downloaded: {}'.format(len(img_list)))
@@ -85,7 +94,7 @@ def album_download(api=None, album_list=[], exclude_list=[], parent_directory='.
                     len(img_list_duplicates_extra)))
 
     except Exception as e:
-        logging.error('Error: {}'.format(e))
+        logging.error('Outer error: {}'.format(e))
 
     finally:
         logging.info('Finished downloading')

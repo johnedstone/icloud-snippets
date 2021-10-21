@@ -82,9 +82,6 @@ def album_download(api=None, album_list=[], exclude_list=[], parent_directory='.
                     except Exception as e:
                         logging.error('Inner error: {}'.format(e))
 
-                    finally:
-                        logging.info('Continuing to next photo')
-
 
                 logging.info('Finished, total number of object in {}: {}'.format(album, len(photos)))
                 logging.info('Total number of unique object downloaded: {}'.format(len(img_list)))

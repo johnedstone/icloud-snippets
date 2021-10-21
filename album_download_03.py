@@ -80,7 +80,7 @@ def album_download(api=None, album_list=[], exclude_list=[], parent_directory='.
                            img_list_duplicates_extra.append((p.filename, p.size))
 
                     except Exception as e:
-                        logging.error('Inner error: {}'.format(e))
+                        logging.error('Inner error: {} : {} : {}'.format(album_dir, p.filename, e))
 
 
                 logging.info('Finished, total number of object in {}: {}'.format(album, len(photos)))

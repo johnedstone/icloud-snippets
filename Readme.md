@@ -20,7 +20,7 @@ False
 
 
 >>> all_albums = [i for i in api.photos.albums]
->>> album_download_03.album_download(api, album_list=all_albums, exclude_list=['Favorites'])
+>>> album_download_03.album_download(api, album_list=all_albums, exclude_list=['Favorites'], parent_directory=path/to/directory)
 
 ```
 
